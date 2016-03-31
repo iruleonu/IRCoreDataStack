@@ -29,9 +29,9 @@ typedef void(^IRCoreDataStackFetchCompletionBlock)(NSArray *results);
 @interface IRCoreDataStack (Operations)
 
 // Saving
-- (BOOL)saveIntoMainContext;
+- (BOOL)saveIntoBackgroundContext;
 - (BOOL)saveIntoContext:(NSManagedObjectContext*)context;
-- (void)saveIntoMainContextUsingBlock:(IRCoreDataStackSaveCompletion)savedBlock;
+- (void)saveIntoBackgroundContextUsingBlock:(IRCoreDataStackSaveCompletion)savedBlock;
 - (void)saveIntoContext:(NSManagedObjectContext*)context usingBlock:(IRCoreDataStackSaveCompletion)savedBlock;
 
 // CRUD

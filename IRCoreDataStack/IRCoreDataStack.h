@@ -41,9 +41,9 @@ enum {
 @interface IRCoreDataStack : NSObject
 
 @property (readonly, strong, nonatomic) NSManagedObjectModel *managedObjectModel;
+@property (readonly, strong, nonatomic) NSPersistentStoreCoordinator *persistentStoreCoordinator;
 @property (readonly, strong, nonatomic) NSManagedObjectContext *managedObjectContext;
 @property (readonly, strong, nonatomic) NSManagedObjectContext *backgroundManagedObjectContext;
-@property (readonly, strong, nonatomic) NSPersistentStoreCoordinator *persistentStoreCoordinator;
 
 - (instancetype)init NS_DESIGNATED_INITIALIZER NS_UNAVAILABLE;
 - (instancetype)initWithType:(NSString *)storeType storeUrl:(NSURL *)storeUrl modelUrl:(NSURL *)modelURL inBundle:(NSBundle *)bundle NS_DESIGNATED_INITIALIZER;

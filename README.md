@@ -41,25 +41,60 @@ IRCoreDataStack *coreDataStack = [[IRCoreDataStack alloc] initWithType:NSSQLiteS
 #### Insert
 You can make use of the method included category to create an entity on the correct context.
 ```objc
-NSManagedObject *managedObject = [coreDataStack createEntityWithClassName:className
-													 attributesDictionary:attributesDictionary];
+NSManagedObject *managedObject = [coreDataStack createEntityWithClassName:classNameString
+                                                     attributesDictionary:attributesDictionary];
 ```
 
 #### Fetch
-You can make use of the method included category and you'll get the results in the completion block.
+You can make use of the methods included category and you'll get the results in the completion block.
+This is the simple one:
+
 ```objc
-[coreDataStack fetchEntriesForClassName:className
-						  withPredicate:predicate
-						sortDescriptors:sortDescriptors
-						completionBlock:completionBlock];
+NSPredicate *predicate = [NSPredicate predicateWithFormat:@"uuid == %@", [obj uuid]];
+[self.coreDataStack fetchEntriesForClassName:className
+                               withPredicate:predicate
+                             sortDescriptors:nil
+                             completionBlock:^(NSArray *results) {
+                                 // Your completion block
+                             }];
 ```
 
-#### Deleting and saving
-Trivial has the previous ones.
+#### Save
+After operations, you should save your changes, on the backgroundManagedObjectContext, using the helper method saveIntoBackgroundContextUsingBlock:
 
-For deleting you've got deleteEntity: or deleteAllFromEntity:
+```objc
 
-For saving you've got saveIntoMainContext or saveIntoMainContextUsingBlock: 
+[self.coreDataStack saveIntoBackgroundContextUsingBlock:^(BOOL saved, NSError *error) {
+    // Your completion block
+}];
+
+```
+
+#### Delete
+Trivial as the previous ones. We've got other methods available too...
+
+```objc
+
+NSManagedObjectContext *bmoc = self.coreDataStack.backgroundManagedObjectContext;
+
+NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] initWithEntityName:nameEntityString];
+[fetchRequest setIncludesPropertyValues:NO]; //only fetch the managedObjectID
+    
+NSError *error;
+NSArray *fetchedObjects = [bmoc executeFetchRequest:fetchRequest error:&error];
+for (NSManagedObject *object in fetchedObjects) {
+    [bmoc deleteObject:object];
+}
+    
+// Despite this method is called save, actually, from the previous operations, is going to delete the objects
+[self.coreDataStack saveIntoContext:bmoc usingBlock:^(BOOL saved, NSError *error) {
+    // You should call processPendingChanges before inspecting deletedObjects of NSManagedObjectContext. 
+    // At least if some relationships have deleteRule set to NSCascadeDeleteRule.
+    // http://stackoverflow.com/questions/5709302/when-and-how-often-to-call-processpendingchanges-to-ensure-graph-integrity
+    // if(saved) [bmoc processPendingChanges];
+}];
+
+```
 
 ## License
 
