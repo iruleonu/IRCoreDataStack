@@ -77,15 +77,8 @@ Trivial as the previous ones. We've got other methods available too...
 
 NSManagedObjectContext *bmoc = self.coreDataStack.backgroundManagedObjectContext;
 
-NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] initWithEntityName:nameEntityString];
-[fetchRequest setIncludesPropertyValues:NO]; //only fetch the managedObjectID
-    
-NSError *error;
-NSArray *fetchedObjects = [bmoc executeFetchRequest:fetchRequest error:&error];
-for (NSManagedObject *object in fetchedObjects) {
-    [bmoc deleteObject:object];
-}
-    
+[self.coreDataStack deleteAllFromEntity:nameEntity];
+
 // Despite this method is called save, actually, from the previous operations, is going to delete the objects
 [self.coreDataStack saveIntoContext:bmoc usingBlock:^(BOOL saved, NSError *error) {
     // You should call processPendingChanges before inspecting deletedObjects of NSManagedObjectContext. 

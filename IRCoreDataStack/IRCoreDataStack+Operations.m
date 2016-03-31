@@ -53,10 +53,16 @@
 }
 
 - (void)saveIntoContext:(NSManagedObjectContext*)context usingBlock:(IRCoreDataStackSaveCompletion)savedBlock {
-    NSError *saveError = nil;
+    __block NSError *saveError = nil;
     NSManagedObjectContext *managedObjectContext = (context == nil) ? self.backgroundManagedObjectContext : context;
-    BOOL saved = [managedObjectContext hasChanges] && [managedObjectContext save:&saveError];
-
+    __block BOOL saved = NO;
+    
+    if ([managedObjectContext hasChanges]) {
+        [managedObjectContext performBlockAndWait:^{
+            saved = [managedObjectContext save:&saveError];
+        }];
+    }
+    
     if (savedBlock) {
         savedBlock(saved, saveError);
     }
