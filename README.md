@@ -77,7 +77,7 @@ Trivial as the previous ones. We've got other methods available too...
 
 NSManagedObjectContext *bmoc = self.coreDataStack.backgroundManagedObjectContext;
 
-[self.coreDataStack deleteAllFromEntity:nameEntity];
+[self.coreDataStack deleteAllFromEntity:nameEntity inManagedObjectContext:bmoc];
 
 // Despite this method is called save, actually, from the previous operations, is going to delete the objects
 [self.coreDataStack saveIntoContext:bmoc usingBlock:^(BOOL saved, NSError *error) {

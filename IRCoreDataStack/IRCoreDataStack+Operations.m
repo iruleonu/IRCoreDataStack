@@ -32,10 +32,10 @@
 - (BOOL)saveIntoContext:(NSManagedObjectContext*)context {
     BOOL check = NO;
     
-    NSManagedObjectContext *managedObjectContext = (context == nil) ? self.backgroundManagedObjectContext : context;
-    if (managedObjectContext != nil) {
+    NSManagedObjectContext *moc = (context == nil) ? self.backgroundManagedObjectContext : context;
+    if (moc != nil) {
         NSError *error = nil;
-        if ([managedObjectContext hasChanges] && ![managedObjectContext save:&error]) {
+        if ([moc hasChanges] && ![moc save:&error]) {
             // Replace this implementation with code to handle the error appropriately.
             // abort() causes the application to generate a crash log and terminate.
             // You should not use this function in a shipping application, although it may be useful during development.
@@ -54,12 +54,12 @@
 
 - (void)saveIntoContext:(NSManagedObjectContext*)context usingBlock:(IRCoreDataStackSaveCompletion)savedBlock {
     __block NSError *saveError = nil;
-    NSManagedObjectContext *managedObjectContext = (context == nil) ? self.backgroundManagedObjectContext : context;
+    NSManagedObjectContext *moc = (context == nil) ? self.backgroundManagedObjectContext : context;
     __block BOOL saved = NO;
     
-    if ([managedObjectContext hasChanges]) {
-        [managedObjectContext performBlockAndWait:^{
-            saved = [managedObjectContext save:&saveError];
+    if ([moc hasChanges]) {
+        [moc performBlockAndWait:^{
+            saved = [moc save:&saveError];
         }];
     }
     
@@ -75,6 +75,7 @@
 - (id)createEntityWithClassName:(NSString *)className
            attributesDictionary:(NSDictionary *)attributesDictionary
          inManagedObjectContext:(NSManagedObjectContext *)context {
+    NSManagedObjectContext *moc = (context == nil) ? self.backgroundManagedObjectContext : context;
     NSManagedObject *entity = [NSEntityDescription insertNewObjectForEntityForName:className
                                                             inManagedObjectContext:context];
     
@@ -82,7 +83,7 @@
         NSObject *obj = attributesDictionary[key];
         if (![obj isEqual:[NSNull null]]) {
             // Ensure same thread
-            [context performBlock:^{
+            [moc performBlockAndWait:^{
                 [entity setValue:obj forKey:key];
             }];
         }
@@ -91,26 +92,25 @@
     return entity;
 }
 
-- (void)deleteEntity:(NSManagedObject *)entity {
-    [self.backgroundManagedObjectContext deleteObject:entity];
+- (void)deleteEntity:(NSManagedObject *)entityMO {
+    [self deleteEntity:entityMO inManagedObjectContext:self.backgroundManagedObjectContext];
 }
 
 - (void)deleteAllFromEntity:(NSString *)entityName {
-    NSFetchRequest *request = [[NSFetchRequest alloc] initWithEntityName:entityName];
-    NSBatchDeleteRequest *delete = [[NSBatchDeleteRequest alloc] initWithFetchRequest:request];
-    NSError *deleteError = nil;
-    [self.backgroundManagedObjectContext executeRequest:delete error:&deleteError];
+    [self deleteAllFromEntity:entityName inManagedObjectContext:self.backgroundManagedObjectContext];
 }
 
-- (void)deleteEntity:(NSManagedObject *)entity inManagedObjectContext:(NSManagedObjectContext *)context {
-    [context deleteObject:entity];
+- (void)deleteEntity:(NSManagedObject *)entityMO inManagedObjectContext:(NSManagedObjectContext *)context {
+    NSManagedObjectContext *moc = (context == nil) ? self.backgroundManagedObjectContext : context;
+    [moc deleteObject:entityMO];
 }
 
 - (void)deleteAllFromEntity:(NSString *)entityName inManagedObjectContext:(NSManagedObjectContext *)context {
+    NSManagedObjectContext *moc = (context == nil) ? self.backgroundManagedObjectContext : context;
     NSFetchRequest *request = [[NSFetchRequest alloc] initWithEntityName:entityName];
     NSBatchDeleteRequest *delete = [[NSBatchDeleteRequest alloc] initWithFetchRequest:request];
     NSError *deleteError = nil;
-    [context executeRequest:delete error:&deleteError];
+    [moc executeRequest:delete error:&deleteError];
 }
 
 - (void)fetchEntriesForClassName:(NSString *)className
@@ -143,25 +143,23 @@
             managedObjectContext:(NSManagedObjectContext *)context
                     asynchronous:(BOOL)asynchronous
                  completionBlock:(IRCoreDataStackFetchCompletionBlock)completionBlock {
+    NSManagedObjectContext *moc = (context == nil) ? self.managedObjectContext : context;
     NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
     fetchRequest.predicate = predicate;
     fetchRequest.sortDescriptors = sortDescriptors;
-    if (!context) {
-        context = self.managedObjectContext;
-    }
     fetchRequest.entity = [NSEntityDescription entityForName:className inManagedObjectContext:context];
     
     if (asynchronous) {
-        [context performBlock:^{
-            NSArray *results = [context executeFetchRequest:fetchRequest error:NULL];
+        [moc performBlock:^{
+            NSArray *results = [moc executeFetchRequest:fetchRequest error:NULL];
             if (completionBlock) {
                 completionBlock(results);
             }
         }];
     }
     else {
-        [context performBlockAndWait:^{
-            NSArray *results = [context executeFetchRequest:fetchRequest error:NULL];
+        [moc performBlockAndWait:^{
+            NSArray *results = [moc executeFetchRequest:fetchRequest error:NULL];
             if (completionBlock) {
                 completionBlock(results);
             }

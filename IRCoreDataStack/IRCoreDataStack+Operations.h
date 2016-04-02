@@ -40,9 +40,9 @@ typedef void(^IRCoreDataStackFetchCompletionBlock)(NSArray *results);
 - (id)createEntityWithClassName:(NSString *)className
            attributesDictionary:(NSDictionary *)attributesDictionary
          inManagedObjectContext:(NSManagedObjectContext *)context;
-- (void)deleteEntity:(NSManagedObject *)entity;
+- (void)deleteEntity:(NSManagedObject *)entityMO;
 - (void)deleteAllFromEntity:(NSString *)entityName NS_AVAILABLE_IOS(9_0);
-- (void)deleteEntity:(NSManagedObject *)entity inManagedObjectContext:(NSManagedObjectContext *)context;
+- (void)deleteEntity:(NSManagedObject *)entityMO inManagedObjectContext:(NSManagedObjectContext *)context;
 - (void)deleteAllFromEntity:(NSString *)entityName inManagedObjectContext:(NSManagedObjectContext *)context NS_AVAILABLE_IOS(9_0);
 
 // FETCHING
