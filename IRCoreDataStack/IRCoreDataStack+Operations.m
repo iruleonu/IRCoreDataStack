@@ -77,7 +77,7 @@
          inManagedObjectContext:(NSManagedObjectContext *)context {
     NSManagedObjectContext *moc = (context == nil) ? self.backgroundManagedObjectContext : context;
     NSManagedObject *entity = [NSEntityDescription insertNewObjectForEntityForName:className
-                                                            inManagedObjectContext:context];
+                                                            inManagedObjectContext:moc];
     
     for (NSString *key in attributesDictionary.allKeys) {
         NSObject *obj = attributesDictionary[key];
@@ -147,7 +147,7 @@
     NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
     fetchRequest.predicate = predicate;
     fetchRequest.sortDescriptors = sortDescriptors;
-    fetchRequest.entity = [NSEntityDescription entityForName:className inManagedObjectContext:context];
+    fetchRequest.entity = [NSEntityDescription entityForName:className inManagedObjectContext:moc];
     
     if (asynchronous) {
         [moc performBlock:^{
