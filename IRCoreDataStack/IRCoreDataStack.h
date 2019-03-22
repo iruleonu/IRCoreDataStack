@@ -23,38 +23,6 @@
 
 #import <CoreData/CoreData.h>
 #import <Foundation/Foundation.h>
-
-extern NSString *const IRCoreDataStackErrorDomain;
-
-enum {
-    IRCoreDataStackMappingModelNotFound = 1,
-    IRCoreDataStackManagedObjectModelNotFound
-};
-
-/**
- *  Merge and notification behaviour Core Data Stack
- *  -CRUD operations goes in the backgroundManagedObjectContext, after operations, contextSave automatically sends a NSManagedObjectContextDidSaveNotification
- *  -Listening for the updated changes is performed on the managedObjectContext, by listening for the NSManagedObjectContextDidSaveNotification
- *  followed by a mergeChangesFromContextDidSaveNotification
- *  -Fetches uses the main managedObjectContext...
- */
-@interface IRCoreDataStack : NSObject
-
-@property (readonly, strong, nonatomic) NSManagedObjectModel *managedObjectModel;
-@property (readonly, strong, nonatomic) NSPersistentStoreCoordinator *persistentStoreCoordinator;
-@property (readonly, strong, nonatomic) NSManagedObjectContext *managedObjectContext;
-@property (readonly, strong, nonatomic) NSManagedObjectContext *backgroundManagedObjectContext;
-
-- (instancetype)init NS_DESIGNATED_INITIALIZER NS_UNAVAILABLE;
-- (instancetype)initWithType:(NSString *)storeType storeUrl:(NSURL *)storeUrl modelUrl:(NSURL *)modelURL inBundle:(NSBundle *)bundle NS_DESIGNATED_INITIALIZER;
-- (instancetype)initWithType:(NSString *)storeType modelFilename:(NSString *)modelFilename inBundle:(NSBundle *)bundle;
-
-@end
-
-@interface IRCoreDataStack (Migration)
-
-@property (nonatomic, readonly) BOOL requiresMigration;
-
-- (BOOL)migrateDataStore:(NSError **)error;
-
-@end
+#import <IRCoreDataStack/IRCDStack.h>
+#import <IRCoreDataStack/IRCDStack+NSFecthedResultsController.h>
+#import <IRCoreDataStack/IRCDStack+Operations.h>

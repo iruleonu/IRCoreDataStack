@@ -21,9 +21,9 @@
 //  THE SOFTWARE.
 //
 
-#import "IRCoreDataStack+NSFecthedResultsController.h"
+#import "IRCDStack+NSFecthedResultsController.h"
 
-@implementation IRCoreDataStack (NSFecthedResultsController)
+@implementation IRCDStack (NSFecthedResultsController)
 
 - (BOOL)uniqueAttributeForClassName:(NSString *)className attributeName:(NSString *)attributeName attributeValue:(id)attributeValue {
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"%K like %@", attributeName, attributeValue];

@@ -21,9 +21,9 @@
 //  THE SOFTWARE.
 //
 
-#import "IRCoreDataStack+Operations.h"
+#import "IRCDStack+Operations.h"
 
-@implementation IRCoreDataStack (Operations)
+@implementation IRCDStack (Operations)
 
 - (BOOL)saveIntoBackgroundContext { 
     return [self saveIntoContext:self.backgroundManagedObjectContext];
@@ -48,11 +48,11 @@
     return check;
 }
 
-- (void)saveIntoBackgroundContextUsingBlock:(IRCoreDataStackSaveCompletion)savedBlock {
+- (void)saveIntoBackgroundContextUsingBlock:(IRCDStackSaveCompletion)savedBlock {
     [self saveIntoContext:self.backgroundManagedObjectContext usingBlock:savedBlock];
 }
 
-- (void)saveIntoContext:(NSManagedObjectContext*)context usingBlock:(IRCoreDataStackSaveCompletion)savedBlock {
+- (void)saveIntoContext:(NSManagedObjectContext*)context usingBlock:(IRCDStackSaveCompletion)savedBlock {
     __block NSError *saveError = nil;
     NSManagedObjectContext *moc = (context == nil) ? self.backgroundManagedObjectContext : context;
     __block BOOL saved = NO;
@@ -116,7 +116,7 @@
 - (void)fetchEntriesForClassName:(NSString *)className
                    withPredicate:(NSPredicate *)predicate
                  sortDescriptors:(NSArray *)sortDescriptors
-                 completionBlock:(IRCoreDataStackFetchCompletionBlock)completionBlock {
+                 completionBlock:(IRCDStackFetchCompletionBlock)completionBlock {
     [self fetchEntriesForClassName:className
                      withPredicate:predicate
                    sortDescriptors:sortDescriptors
@@ -128,7 +128,7 @@
                    withPredicate:(NSPredicate *)predicate
                  sortDescriptors:(NSArray *)sortDescriptors
             managedObjectContext:(NSManagedObjectContext *)context
-                 completionBlock:(IRCoreDataStackFetchCompletionBlock)completionBlock {
+                 completionBlock:(IRCDStackFetchCompletionBlock)completionBlock {
     [self fetchEntriesForClassName:className
                      withPredicate:predicate
                    sortDescriptors:sortDescriptors
@@ -142,7 +142,7 @@
                  sortDescriptors:(NSArray *)sortDescriptors
             managedObjectContext:(NSManagedObjectContext *)context
                     asynchronous:(BOOL)asynchronous
-                 completionBlock:(IRCoreDataStackFetchCompletionBlock)completionBlock {
+                 completionBlock:(IRCDStackFetchCompletionBlock)completionBlock {
     NSManagedObjectContext *moc = (context == nil) ? self.managedObjectContext : context;
     NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
     fetchRequest.predicate = predicate;
