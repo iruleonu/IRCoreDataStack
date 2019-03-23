@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name          = "IRCoreDataStack"
-  spec.version       = "1.0.4"
+  spec.version       = "1.1"
   spec.summary       = "CoreDataStack with two independent NSManagedObjectContext instances"
   spec.homepage      = "https://github.com/iruleonu/IRCoreDataStack"
   spec.license       = { :type => "MIT", :file => "LICENSE.md" }
