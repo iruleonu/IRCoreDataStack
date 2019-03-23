@@ -21,9 +21,9 @@
 //  THE SOFTWARE.
 //
 
-#import "IRCoreDataStack.h"
+#import <IRCoreDataStack/IRCDStack.h>
 
-@interface IRCoreDataStack (NSFecthedResultsController)
+@interface IRCDStack (NSFecthedResultsController)
 
 - (BOOL)uniqueAttributeForClassName:(NSString *)className
                       attributeName:(NSString *)attributeName

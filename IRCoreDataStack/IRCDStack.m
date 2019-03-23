@@ -21,10 +21,11 @@
 //  THE SOFTWARE.
 //
 
-#import "IRCoreDataStack.h"
+#import "IRCDStack.h"
 #import <objc/runtime.h>
 #import <objc/message.h>
 #import <libkern/OSAtomic.h>
+#import <UIKit/UIKit.h>
 
 static void class_swizzleSelector(Class class, SEL originalSelector, SEL newSelector) {
     Method origMethod = class_getInstanceMethod(class, originalSelector);
@@ -37,9 +38,9 @@ static void class_swizzleSelector(Class class, SEL originalSelector, SEL newSele
     }
 }
 
-NSString *const IRCoreDataStackErrorDomain = @"IRCoreDataStackErrorDomain";
+NSString *const CoreDataStackErrorDomain = @"CoreDataStackErrorDomain";
 
-@interface IRCoreDataStack ()
+@interface IRCDStack ()
 
 @property (nonatomic, strong) NSString *storeType;
 @property (nonatomic, strong) NSURL *storeURL;
@@ -52,7 +53,7 @@ NSString *const IRCoreDataStackErrorDomain = @"IRCoreDataStackErrorDomain";
 
 @end
 
-@implementation IRCoreDataStack
+@implementation IRCDStack
 
 #pragma mark - Initialization
 
@@ -61,7 +62,7 @@ NSString *const IRCoreDataStackErrorDomain = @"IRCoreDataStackErrorDomain";
 }
 
 - (instancetype)initWithType:(NSString *)storeType modelFilename:(NSString *)modelFilename inBundle:(NSBundle *)bundle {
-    NSURL *momOrMomdURL = [IRCoreDataStack getMomFileURLWithFilename:modelFilename inBundle:bundle];
+    NSURL *momOrMomdURL = [IRCDStack getMomFileURLWithFilename:modelFilename inBundle:bundle];
     NSURL *libraryDirectory = [[NSFileManager defaultManager] URLsForDirectory:NSLibraryDirectory inDomains:NSUserDomainMask].lastObject;
     NSURL *storeUrl = [libraryDirectory URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.sqlite", modelFilename]];
     return [self initWithType:NSSQLiteStoreType storeUrl:storeUrl modelUrl:momOrMomdURL inBundle:bundle];
@@ -155,7 +156,7 @@ NSString *const IRCoreDataStackErrorDomain = @"IRCoreDataStackErrorDomain";
     if (self.requiresMigration) {
         NSError *error = nil;
         if (![self migrateDataStore:&error]) {
-            NSLog(@"[IRCoreDataStack] migrating data store failed: %@", error);
+            NSLog(@"[CoreDataStack] migrating data store failed: %@", error);
         }
     }
     
@@ -168,14 +169,14 @@ NSString *const IRCoreDataStackErrorDomain = @"IRCoreDataStackErrorDomain";
         dict[NSLocalizedDescriptionKey] = @"Failed to initialize the application's saved data";
         dict[NSLocalizedFailureReasonErrorKey] = @"There was an error creating or loading the application's saved data.";
         dict[NSUnderlyingErrorKey] = error;
-        error = [NSError errorWithDomain:IRCoreDataStackErrorDomain code:9999 userInfo:dict];
-        NSLog(@"[IRCoreDataStack] could not add persistent store: %@", error);
-        NSLog(@"[IRCoreDataStack] deleting old data store");
+        error = [NSError errorWithDomain:CoreDataStackErrorDomain code:9999 userInfo:dict];
+        NSLog(@"[CoreDataStack] could not add persistent store: %@", error);
+        NSLog(@"[CoreDataStack] deleting old data store");
         [[NSFileManager defaultManager] removeItemAtURL:self.storeURL error:NULL];
         
         persistentStore = [_persistentStoreCoordinator addPersistentStoreWithType:self.storeType configuration:nil URL:self.storeURL options:persistentStoreCoordinatorOptions error:&error];
         if (!persistentStore) {
-            NSLog(@"[IRCoreDataStack] could not add persistent store: %@", error);
+            NSLog(@"[CoreDataStack] could not add persistent store: %@", error);
             abort();
         }
     }
@@ -304,7 +305,7 @@ NSString *const IRCoreDataStackErrorDomain = @"IRCoreDataStackErrorDomain";
 
 @end
 
-@implementation IRCoreDataStack (Migration)
+@implementation IRCDStack (Migration)
 
 - (BOOL)requiresMigration {
 #if __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
@@ -337,12 +338,12 @@ NSString *const IRCoreDataStackErrorDomain = @"IRCoreDataStackErrorDomain";
     NSPersistentStoreCoordinator *persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:self.managedObjectModel];
     
     if ([persistentStoreCoordinator addPersistentStoreWithType:self.storeType configuration:nil URL:self.storeURL options:options error:&addStoreError]) {
-        NSLog(@"[IRCoreDataStack] automatic persistent store migration completed %@", options);
+        NSLog(@"[CoreDataStack] automatic persistent store migration completed %@", options);
         OSSpinLockUnlock(&lock);
         return YES;
     } else {
-        NSLog(@"[IRCoreDataStack] could not automatic migrate persistent store with %@", options);
-        NSLog(@"[IRCoreDataStack] addStoreError = %@", addStoreError);
+        NSLog(@"[CoreDataStack] could not automatic migrate persistent store with %@", options);
+        NSLog(@"[CoreDataStack] addStoreError = %@", addStoreError);
     }
     
     BOOL success = [self performMigrationFromDataStoreAtURL:self.storeURL toDestinationModel:self.managedObjectModel error:error];
@@ -350,6 +351,7 @@ NSString *const IRCoreDataStackErrorDomain = @"IRCoreDataStackErrorDomain";
     
     return success;
 }
+
 
 - (BOOL)performMigrationFromDataStoreAtURL:(NSURL *)dataStoreURL
                         toDestinationModel:(NSManagedObjectModel *)destinationModel
@@ -360,7 +362,7 @@ NSString *const IRCoreDataStackErrorDomain = @"IRCoreDataStackErrorDomain";
         }
         
         NSDictionary *userInfo = @{ NSLocalizedDescriptionKey: description };
-        *error = [NSError errorWithDomain:IRCoreDataStackErrorDomain code:errorCode userInfo:userInfo];
+        *error = [NSError errorWithDomain:CoreDataStackErrorDomain code:errorCode userInfo:userInfo];
         
         return NO;
     };
@@ -386,7 +388,7 @@ NSString *const IRCoreDataStackErrorDomain = @"IRCoreDataStackErrorDomain";
     NSManagedObjectModel *sourceModel = [NSManagedObjectModel mergedModelFromBundles:bundles forStoreMetadata:sourceMetadata];
     
     if (!sourceModel) {
-        return updateError(IRCoreDataStackManagedObjectModelNotFound, [NSString stringWithFormat:@"NSManagedObjectModel is nil for source metadata %@", sourceMetadata]);
+        return updateError(IRCDStackManagedObjectModelNotFound, [NSString stringWithFormat:@"NSManagedObjectModel is nil for source metadata %@", sourceMetadata]);
     }
     
     NSMutableArray *objectModelPaths = [NSMutableArray array];
@@ -401,7 +403,7 @@ NSString *const IRCoreDataStackErrorDomain = @"IRCoreDataStackErrorDomain";
     [objectModelPaths addObjectsFromArray:otherModels];
     
     if (objectModelPaths.count == 0) {
-        return updateError(IRCoreDataStackManagedObjectModelNotFound, [NSString stringWithFormat:@"No NSManagedObjectModels found in bundle %@", self.bundle]);
+        return updateError(IRCDStackManagedObjectModelNotFound, [NSString stringWithFormat:@"No NSManagedObjectModels found in bundle %@", self.bundle]);
     }
     
     NSMappingModel *mappingModel = nil;
@@ -418,7 +420,7 @@ NSString *const IRCoreDataStackErrorDomain = @"IRCoreDataStackErrorDomain";
     }
     
     if (!mappingModel) {
-        return updateError(IRCoreDataStackMappingModelNotFound, [NSString stringWithFormat:@"Unable to find NSMappingModel for store at URL %@", dataStoreURL]);
+        return updateError(IRCDStackMappingModelNotFound, [NSString stringWithFormat:@"Unable to find NSMappingModel for store at URL %@", dataStoreURL]);
     }
     
     NSMigrationManager *migrationManager = [[NSMigrationManager alloc] initWithSourceModel:sourceModel destinationModel:targetModel];
@@ -461,14 +463,14 @@ NSString *const IRCoreDataStackErrorDomain = @"IRCoreDataStackErrorDomain";
 @end
 
 #ifdef DEBUG
-@implementation NSManagedObject (IRCoreDataStackCoreDataThreadDebugging)
+@implementation NSManagedObject (CoreDataStackCoreDataThreadDebugging)
 
 + (void)load {
-    class_swizzleSelector(self, @selector(willChangeValueForKey:), @selector(_IRCoreDataStackCoreDataThreadDebuggingWillChangeValueForKey:));
-    class_swizzleSelector(self, @selector(willAccessValueForKey:), @selector(_IRCoreDataStackCoreDataThreadDebuggingWillAccessValueForKey:));
+    class_swizzleSelector(self, @selector(willChangeValueForKey:), @selector(_CoreDataStackCoreDataThreadDebuggingWillChangeValueForKey:));
+    class_swizzleSelector(self, @selector(willAccessValueForKey:), @selector(_CoreDataStackCoreDataThreadDebuggingWillAccessValueForKey:));
 }
 
-- (void)_IRCoreDataStackCoreDataThreadDebuggingWillAccessValueForKey:(NSString *)key {
+- (void)_CoreDataStackCoreDataThreadDebuggingWillAccessValueForKey:(NSString *)key {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
     NSManagedObjectContext *context = self.managedObjectContext;
@@ -484,10 +486,10 @@ NSString *const IRCoreDataStackErrorDomain = @"IRCoreDataStackErrorDomain";
 
 #pragma clang diagnostic pop
 
-    [self _IRCoreDataStackCoreDataThreadDebuggingWillAccessValueForKey:key];
+    [self _CoreDataStackCoreDataThreadDebuggingWillAccessValueForKey:key];
 }
 
-- (void)_IRCoreDataStackCoreDataThreadDebuggingWillChangeValueForKey:(NSString *)key
+- (void)_CoreDataStackCoreDataThreadDebuggingWillChangeValueForKey:(NSString *)key
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
@@ -504,7 +506,7 @@ NSString *const IRCoreDataStackErrorDomain = @"IRCoreDataStackErrorDomain";
 
 #pragma clang diagnostic pop
 
-    [self _IRCoreDataStackCoreDataThreadDebuggingWillChangeValueForKey:key];
+    [self _CoreDataStackCoreDataThreadDebuggingWillChangeValueForKey:key];
 }
 
 @end

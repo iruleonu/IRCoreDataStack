@@ -21,18 +21,18 @@
 //  THE SOFTWARE.
 //
 
-#import "IRCoreDataStack.h"
+#import <IRCoreDataStack/IRCDStack.h>
 
-typedef void(^IRCoreDataStackSaveCompletion)(BOOL saved, NSError *error);
-typedef void(^IRCoreDataStackFetchCompletionBlock)(NSArray *results);
+typedef void(^IRCDStackSaveCompletion)(BOOL saved, NSError *error);
+typedef void(^IRCDStackFetchCompletionBlock)(NSArray *results);
 
-@interface IRCoreDataStack (Operations)
+@interface IRCDStack (Operations)
 
 // Saving
 - (BOOL)saveIntoBackgroundContext;
 - (BOOL)saveIntoContext:(NSManagedObjectContext*)context;
-- (void)saveIntoBackgroundContextUsingBlock:(IRCoreDataStackSaveCompletion)savedBlock;
-- (void)saveIntoContext:(NSManagedObjectContext*)context usingBlock:(IRCoreDataStackSaveCompletion)savedBlock;
+- (void)saveIntoBackgroundContextUsingBlock:(IRCDStackSaveCompletion)savedBlock;
+- (void)saveIntoContext:(NSManagedObjectContext*)context usingBlock:(IRCDStackSaveCompletion)savedBlock;
 
 // CRUD
 - (id)createEntityWithClassName:(NSString *)className
@@ -49,17 +49,17 @@ typedef void(^IRCoreDataStackFetchCompletionBlock)(NSArray *results);
 - (void)fetchEntriesForClassName:(NSString *)className
                    withPredicate:(NSPredicate *)predicate
                  sortDescriptors:(NSArray *)sortDescriptors
-                 completionBlock:(IRCoreDataStackFetchCompletionBlock)completionBlock;
+                 completionBlock:(IRCDStackFetchCompletionBlock)completionBlock;
 - (void)fetchEntriesForClassName:(NSString *)className
                    withPredicate:(NSPredicate *)predicate
                  sortDescriptors:(NSArray *)sortDescriptors
             managedObjectContext:(NSManagedObjectContext *)context
-                 completionBlock:(IRCoreDataStackFetchCompletionBlock)completionBlock;
+                 completionBlock:(IRCDStackFetchCompletionBlock)completionBlock;
 - (void)fetchEntriesForClassName:(NSString *)className
                    withPredicate:(NSPredicate *)predicate
                  sortDescriptors:(NSArray *)sortDescriptors
             managedObjectContext:(NSManagedObjectContext *)context
                     asynchronous:(BOOL)asynchronous
-                 completionBlock:(IRCoreDataStackFetchCompletionBlock)completionBlock;
+                 completionBlock:(IRCDStackFetchCompletionBlock)completionBlock;
 
 @end
